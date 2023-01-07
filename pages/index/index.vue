@@ -1,5 +1,8 @@
 <template>
 	<view>
+		<view class="search-box">
+			<my-search @myclick="gotoSearch"></my-search>
+		</view>
 		<!-- 自动轮播间隔interval 循环轮播circular-->
 		<swiper :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true">
 			<swiper-item v-for="(item,index) in swiperList" :key="item.goods_id">
@@ -48,6 +51,7 @@
 			this.getFloorData()
 		},
 		methods: {
+			//获取轮播图数据
 			async getSwiperList(){
 				let {data:res} = await uni.$http.get('/api/public/v1/home/swiperdata')
 				if(res.meta.status!==200){
@@ -58,6 +62,7 @@
 				this.swiperList = res.message
 				uni.$showMsg('数据请求成功')
 			},
+			//获取小分类数据
 			async getNavList(){
 				let {data:res} = await uni.$http.get('/api/public/v1/home/catitems')
 				if(res.meta.status!==200){
@@ -66,6 +71,7 @@
 				this.navList = res.message
 				uni.$showMsg('数据请求成功')
 			},
+			//跳转到分类页面
 			navClickHandler(item){
 				if(item.name ==='分类'){
 					uni.switchTab({
@@ -73,6 +79,7 @@
 					})
 				}
 			},
+			//获取楼层数据
 			async getFloorData(){
 				let {data:res} = await uni.$http.get('/api/public/v1/home/floordata')
 				if(res.meta.status!==200){
@@ -85,6 +92,12 @@
 				})
 				this.floorData = res.message
 				uni.$showMsg('数据请求成功')
+			},
+			//跳转至搜索页面
+			gotoSearch(){
+				uni.navigateTo({
+					url:"/subpkg/search/search"
+				})
 			}
 		}
 	}
@@ -132,5 +145,13 @@ swiper {
 		}
 	}
 }
-
+/* 设置search组件吸顶效果 */
+.search-box{
+	/* 设置定位效果为吸顶 */
+	position: sticky;
+	//吸顶的位置
+	top: 0;
+	//提高层级，防止被轮播图覆盖
+	z-index: 999;
+}
 </style>
