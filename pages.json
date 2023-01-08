@@ -29,7 +29,9 @@
 				{
 					"path": "goods_list/goods_list",
 					"style": {
-						
+						"onReachBottomDistance": 150,
+						//开启下拉刷新
+						"enablePullDownRefresh": true
 					}
 				},{
 					"path": "search/search",
