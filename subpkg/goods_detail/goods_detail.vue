@@ -11,8 +11,8 @@
 				
 			};
 		},
-		onLoad(options) {
-			console.log(options);
+		onLoad() {
+			
 		}
 	}
 </script>
