@@ -22,19 +22,27 @@
 				</view>
 			</view>
 			<view class="yf">
-				快递:免运费
+				快递:免运费{{cart.length}}
 			</view>
 		</view>
 		<!-- 富文本可以将html标签渲染出来 -->
 		<rich-text :nodes="goods_info.goods_introduce"></rich-text>
 		<!-- 商品导航区域 -->
 		<view class="goods_nav">
-			<uni-goods-nav :fill="true"  :options="options" :buttonGroup="buttonGroup"  @click="onClick" @buttonClick="buttonClick" />
+			<uni-goods-nav :fill="true" :options="options" :buttonGroup="buttonGroup" @click="onClick"
+				@buttonClick="buttonClick" />
 		</view>
 	</view>
 </template>
 
 <script>
+	import {
+		mapState,mapGetters
+	} from 'vuex'
+	import {
+		mapMutations
+	} from 'vuex'
+	import badgr from '@/mixins/tabber-badgr.js'
 	export default {
 		data() {
 			return {
@@ -43,32 +51,36 @@
 
 				},
 				//底部goods-nav组件数据
-				options: [ {
-							icon: 'shop',
-							text: '店铺',
-						}, {
-							icon: 'cart',
-							text: '购物车',
-							info: 2
-						}],
-					    buttonGroup: [{
-					      text: '加入购物车',
-					      backgroundColor: '#ff0000',
-					      color: '#fff'
-					    },
-					    {
-					      text: '立即购买',
-					      backgroundColor: '#ffa200',
-					      color: '#fff'
-					    }
-					    ]
-	};
-	},
-	onLoad(options) {
-			const goods_id = options.goods_id
-			this.getGoodsInfo(goods_id)
+				options: [{
+					icon: 'shop',
+					text: '店铺',
+				}, {
+					icon: 'cart',
+					text: '购物车',
+					info: 0
+				}],
+				buttonGroup: [{
+						text: '加入购物车',
+						backgroundColor: '#ff0000',
+						color: '#fff'
+					},
+					{
+						text: '立即购买',
+					 backgroundColor: '#ffa200',
+						color: '#fff'
+					}
+				]
+			};
 		},
+		onLoad(options) {
+			const goods_id = options.goods_id
+			//获取数据
+			this.getGoodsInfo(goods_id)
+			this.options[1].info = this.total
+		},
+		mixins:[badgr],
 		methods: {
+			//获取数据函数
 			async getGoodsInfo(goods_id) {
 				let {
 					data: res
@@ -81,9 +93,9 @@
 				//利用正则表达式对字符串进行修改
 				res.message.goods_introduce = res.message.goods_introduce.replace(/<img /g,
 					'<img style="display:block;"').replace(/webp/g, 'jpg')
-
-				this.goods_info = res.message
+				this.goods_info =res.message
 			},
+			//预览图片
 			preview(index) {
 				uni.previewImage({
 					//显示第几张图片
@@ -93,15 +105,40 @@
 				})
 			},
 			onClick(e) {
-				if(e.content.text==='购物车'){
+				if (e.content.text === '购物车') {
 					uni.switchTab({
-						url:"/pages/cart/cart"
+						url: "/pages/cart/cart"
 					})
 				}
 			},
 			buttonClick(e) {
-				console.log(e)
-			}
+				if (e.content.text === '加入购物车') {
+					//整理参数
+					const goods ={
+						goods_id: this.goods_info.goods_id,//商品的Id
+						goods_name: this.goods_info.goods_name, //商品的名称
+						goods_price: this.goods_info.goods_price,//商品的价格
+						goods_count: 1,//商品的数量
+						goods_small_logo: this.goods_info.goods_small_logo,//商品的图片
+						goods_state: true//商品的勾选状态
+					}
+					//修改cart仓库数据
+					this.addToCart(goods)
+					//矫正购物车数量
+					this.setBadge()
+				}
+			},
+			...mapMutations('m_cart', ['addToCart'])
+		},
+		computed: {
+			...mapState('m_cart', ['cart']),
+			...mapGetters('m_cart',['total'])
+		},
+		watch:{
+			total(newValue){
+				//调整购物车数量
+				this.options[1].info = newValue
+			},
 		}
 	}
 </script>
@@ -157,7 +194,8 @@
 			color: #b0b0b0;
 		}
 	}
-	.goods_nav{
+
+	.goods_nav {
 		position: sticky;
 		bottom: 0;
 	}
